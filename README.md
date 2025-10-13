@@ -1,4 +1,5 @@
-Readme is to describe the github repo  to everyone in the project
+it  is to describe the github repo for everyone that  invloved in the project
+
 
 
 
