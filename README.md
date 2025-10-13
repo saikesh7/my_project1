@@ -1,2 +1,3 @@
-it is to describe above the repo  to everyone involved in the project
+redme is to describe above the github repo  to everyone that involved in the project
+
 
