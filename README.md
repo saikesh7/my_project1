@@ -1,4 +1,5 @@
-it  is to describe the github repo for everyone that  invloved in the project
+Readme is to describe about the github repo for everyone that is invloved in the project.
+
 
 
 
