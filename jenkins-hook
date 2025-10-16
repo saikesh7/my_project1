@@ -1,0 +1,63 @@
+pipeline {
+    // This is the most important part: it tells Jenkins to run this job
+    // on the agent with the 'office' label.
+    agent { label 'office' }
+
+    stages {
+        stage('1. Checkout Code') {
+            steps {
+                // Clean the workspace before checking out
+                cleanWs()
+                // Use the credential ID you created in Jenkins
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'git@github.com:YOUR_ORG/YOUR_REPO.git',
+                        credentialsId: 'github-office-deploy-key'
+                    ]]
+                ])
+            }
+        }
+
+        stage('2. Build Project (Optional)') {
+            steps {
+                script {
+                    // Add build steps if your project needs them (e.g., for Node.js, Java)
+                    // sh 'npm install'
+                    // sh 'npm run build'
+                    echo "Build step can be added here if needed."
+                }
+            }
+        }
+
+        stage('3. Deploy with Zero-Downtime (Symlink)') {
+            steps {
+                script {
+                    def releaseDir = "/var/www/my-project/releases/${BUILD_NUMBER}"
+                    def currentLink = "/var/www/my-project/current"
+
+                    // Run all commands on the agent machine
+                    sh """
+                        echo "Deploying build #${BUILD_NUMBER}..."
+
+                        # 1. Create the new release directory
+                        mkdir -p ${releaseDir}
+
+                        # 2. Copy the built application to the new release directory
+                        # If you have a build folder, copy from it, e.g., 'build/*'
+                        rsync -avz . ${releaseDir}/ --exclude '.git' --exclude 'Jenkinsfile'
+
+                        # 3. Atomically update the 'current' symlink to point to the new release
+                        ln -sfn ${releaseDir} ${currentLink}
+
+                        echo "Deployment successful. Symlink updated."
+
+                        # 4. (Optional) Clean up old releases, keeping the last 5
+                        ls -dt /var/www/my-project/releases/* | tail -n +6 | xargs -r rm -rf
+                    """
+                }
+            }
+        }
+    }
+}
